@@ -4,17 +4,19 @@ import java.util.LinkedList;
 class Editor
 {
     LinkedList<Chip> chipList;
+    public Chip ogChip;
 
     public Editor()
     {
         chipList = new LinkedList<>();
+
         createChip("Test", Chip.Defaults.NONE);
         Chip c = getChip("Test");
         c.addChip(new Chip("AND1", Chip.Defaults.AND)).addChip(new Chip("AND2",Chip.Defaults.AND)).addChip(new Chip("AND3",Chip.Defaults.AND));
         c.addOutput("Out");
         for(int i = 0; i < 4; i++) {
             c.addInput("In" + (i + 1));
-            c.getInput("In" + (i + 1)).activated = true;
+            //c.getInput("In" + (i + 1)).activated = true;
         }
         c.connectIn("In1", "AND1", "A");
         c.connectIn("In2", "AND1", "B");
@@ -23,27 +25,31 @@ class Editor
         c.interconnect("AND1", "C", "AND3", "A");
         c.interconnect("AND2", "C", "AND3", "B");
         c.connectOut("AND3", "C", "Out");
-        startSimulation(c);
-        System.out.println(c.getOutput("Out").activated);
+
+        createChip("Test2", Chip.Defaults.NONE);
+        Chip d = getChip("Test2");
+        d.addChip(c).addChip(new Chip("AND1B", Chip.Defaults.AND));
+        d.addOutput("Out");
+        for(int i = 0; i < 5; i++) {
+            d.addInput("In" + (i + 1));
+            d.getInput("In" + (i + 1)).activated = true;
+        }
+        d.connectIn("In1", "Test", "In1");
+        d.connectIn("In2", "Test", "In2");
+        d.connectIn("In3", "Test", "In3");
+        d.connectIn("In4", "Test", "In4");
+        d.connectIn("In5", "AND1B", "B");
+        d.interconnect("Test", "Out", "AND1B", "A");
+        d.connectOut("AND1B", "C", "Out");
+        runSimulation(d);
+        pinOut(d);
+        System.out.println(d.getOutput("Out").activated);
     }
 
     public void createChip(String name, Chip.Defaults mode)
     {
         Chip c = new Chip(name, mode);
         chipList.add(c);
-    }
-
-    public void startSimulation(Chip c) {
-        c.callInputLogic();
-        runSimulation(c);
-    }
-
-    public void runSimulation(Chip c)
-    {   
-        c.logic();
-        for(Chip inner: c.chips) {
-            runSimulation(inner);
-        }
     }
 
     public Chip getChip(String name)
@@ -54,6 +60,10 @@ class Editor
             }
         }
         throw new RuntimeException("No Chip with name: " + name);
+    }
+
+    public void runSimulation(Chip topChip) {
+       //redo simulation
     }
 
     public void pinOutOld(Chip c)

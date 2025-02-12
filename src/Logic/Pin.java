@@ -14,7 +14,7 @@ public class Pin
     public boolean activated;
     Pin connectionIn = null;
     public ArrayList<Pin> connectionsOut = new ArrayList<>();
-    Chip chip;
+    public Chip chip;
 
     public Pin(PINMODE mode)
     {
