@@ -10,10 +10,10 @@ public class Pin
     }
 
     public String name;
-    PINMODE mode;
+    public PINMODE mode;
     public boolean activated;
     Pin connectionIn = null;
-    ArrayList<Pin> connectionsOut = new ArrayList<>();
+    public ArrayList<Pin> connectionsOut = new ArrayList<>();
     Chip chip;
 
     public Pin(PINMODE mode)
