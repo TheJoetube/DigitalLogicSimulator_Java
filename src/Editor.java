@@ -62,8 +62,27 @@ class Editor
         throw new RuntimeException("No Chip with name: " + name);
     }
 
-    public void runSimulation(Chip topChip) {
-       //redo simulation
+    public void runSimulation(Chip c) {
+        if(c.getDMode() == Chip.Defaults.NONE) {
+            for(Pin in: c.iPins) {
+                for(Pin p: in.connectionsOut) {
+                    p.activated = in.activated;
+                }
+                for(Pin p: in.connectionsOut) {
+                    runSimulation(p.chip);
+                }
+            }
+        } else {
+            c.logic();
+        }
+        for(Pin out: c.oPins) {
+            for(Pin p: out.connectionsOut) {
+                p.activated = out.activated;
+            }
+            for(Pin p: out.connectionsOut) {
+                runSimulation(p.chip);
+            }
+        }
     }
 
     public void pinOutOld(Chip c)
