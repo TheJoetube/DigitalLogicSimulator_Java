@@ -62,10 +62,22 @@ public class Chip
 
             case Defaults.NOT:
                 oPins.getLast().activated = !iPins.getFirst().activated;
+
+                for(Pin p: oPins) {
+                    for(Pin i: p.connectionsOut) {
+                        i.activated = p.activated;
+                    }
+                }
                 break;
 
             case Defaults.OR:
                 oPins.getLast().activated = (iPins.getFirst().activated || iPins.getLast().activated);
+
+                for(Pin p: oPins) {
+                    for(Pin i: p.connectionsOut) {
+                        i.activated = p.activated;
+                    }
+                }
                 break;
 
             case Defaults.NONE:

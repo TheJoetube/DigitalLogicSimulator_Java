@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Pin
 {
-    enum PINMODE {
+    public enum PINMODE {
         INPUT,
         OUTPUT
     }

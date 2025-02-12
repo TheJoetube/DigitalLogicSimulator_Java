@@ -16,7 +16,6 @@ class Editor
             c.addInput("In" + (i + 1));
             c.getInput("In" + (i + 1)).activated = true;
         }
-        c.getInput("In1").activated = false;
         c.connectIn("In1", "AND1", "A");
         c.connectIn("In2", "AND1", "B");
         c.connectIn("In3", "AND2", "A");
@@ -24,7 +23,6 @@ class Editor
         c.interconnect("AND1", "C", "AND3", "A");
         c.interconnect("AND2", "C", "AND3", "B");
         c.connectOut("AND3", "C", "Out");
-        pinOut(c);
         startSimulation(c);
         System.out.println(c.getOutput("Out").activated);
     }
@@ -81,30 +79,35 @@ class Editor
     }
 
     public void pinOut(Chip c) {
+        System.out.println(c.name + ":");
         int longestPinNameL = 0;
-        int longestPinNameR = 0;
         for(Pin p: c.iPins) {
             if(p.name.length() >= longestPinNameL) {
                 longestPinNameL = p.name.length();
             }
         }
-        for(Pin p: c.oPins) {
-            if(p.name.length() >= longestPinNameR) {
-                longestPinNameR = p.name.length();
-            }
-        }
-        for(int i = 0; i < longestPinNameL; i++) {
+        for(int i = 0; i < longestPinNameL + 4; i++) {
             System.out.print(" ");
         }
-        System.out.println(" -");
+        System.out.print(" -");
 
-        for (Pin p: c.allPins) {
-            int padding = 0;
-            if(p.mode == PINMODE.INPUT) {
-                padding =    
+        for(int i = 0; i < Math.max(c.iPins.size(), c.oPins.size()); i++) {
+            int padding;
+            if(i < c.iPins.size()) {
+                padding = longestPinNameL - c.iPins.get(i).name.length();
+                for(int j = 0; j < padding; j++) {
+                    System.out.print(" ");
+                }
+                System.out.println();
+                System.out.print(c.iPins.get(i).name + " -> ");
+                System.out.print("| |");
+            }
+            if(i < c.oPins.size()) {
+                System.out.print(" <- " + c.oPins.get(i).name);
             }
         }
-        for(int i = 0; i < longestPinNameL; i++) {
+        System.out.println();
+        for(int i = 0; i < longestPinNameL + 4; i++) {
             System.out.print(" ");
         }
         System.out.println(" -");
