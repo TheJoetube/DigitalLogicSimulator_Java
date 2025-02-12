@@ -37,11 +37,27 @@ public class Chip
         setDefault(mode);
     }
 
+    public Chip callInputLogic() {
+        for(Pin p: iPins) {
+            for(Pin i: p.connectionsOut) {
+                i.activated = p.activated;
+            }
+        }
+        return this;   
+    }
+
     public Chip logic()
     {
+
         switch(dMode) {
             case Defaults.AND:
                 oPins.getLast().activated = (iPins.getFirst().activated && iPins.getLast().activated);
+                
+                for(Pin p: oPins) {
+                    for(Pin i: p.connectionsOut) {
+                        i.activated = p.activated;
+                    }
+                }
                 break;
 
             case Defaults.NOT:
@@ -85,7 +101,7 @@ public class Chip
         Pin start = getPin(startPin);
         for(Pin p: getChip(endChip).iPins) {
             if(p.name.equals(endPin)) {
-                start.connection = p;
+                start.connectionsOut.add(p);
                 return this;
             }
         }
@@ -98,7 +114,7 @@ public class Chip
         Chip start = getChip(startChip);
         for(Pin p: oPins) {
             if(p.name.equals(endPin)) {
-                start.getOutput(startPin).connection = p;
+                start.getOutput(startPin).connectionsOut.add(p);
                 return this;
             }
         }
@@ -112,7 +128,7 @@ public class Chip
         Chip end = getChip(endChip);
         for(Pin p: end.iPins) {
             if(p.name.equals(endPin)) {
-                start.getOutput(startPin).connection = end.getInput(endPin);
+                start.getOutput(startPin).connectionsOut.add(end.getInput(endPin));
                 return this;
             }
         }
@@ -185,6 +201,10 @@ public class Chip
             }
         }
         throw new RuntimeException("No pin with name: " + name);
+    }
+
+    public Defaults getDMode() {
+        return dMode;
     }
 
     public void activateInput(String name, boolean a)

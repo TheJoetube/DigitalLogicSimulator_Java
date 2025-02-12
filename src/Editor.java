@@ -1,5 +1,5 @@
-import java.util.LinkedList;
 import Logic.*;
+import java.util.LinkedList;
 
 class Editor
 {
@@ -24,7 +24,7 @@ class Editor
         c.interconnect("AND2", "C", "AND3", "B");
         c.connectOut("AND3", "C", "Out");
         pinOut(c);
-        runSimulation(c);
+        startSimulation(c);
         System.out.println(c.getOutput("Out").activated);
     }
 
@@ -34,10 +34,15 @@ class Editor
         chipList.add(c);
     }
 
+    public void startSimulation(Chip c) {
+        c.callInputLogic();
+        runSimulation(c);
+    }
+
     public void runSimulation(Chip c)
-    {
+    {   
+        c.logic();
         for(Chip inner: c.chips) {
-            inner.logic();
             runSimulation(inner);
         }
     }

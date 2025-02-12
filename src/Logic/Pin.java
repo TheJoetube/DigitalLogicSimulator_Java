@@ -1,5 +1,7 @@
 package Logic;
 
+import java.util.ArrayList;
+
 public class Pin
 {
     enum PINMODE {
@@ -10,7 +12,8 @@ public class Pin
     public String name;
     PINMODE mode;
     public boolean activated;
-    Pin connection = null;
+    Pin connectionIn = null;
+    ArrayList<Pin> connectionsOut = new ArrayList<>();
     Chip chip;
 
     public Pin(PINMODE mode)
