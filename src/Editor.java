@@ -1,4 +1,8 @@
 import Logic.*;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 
 class Editor
@@ -70,6 +74,102 @@ class Editor
         runSimulation(d);
         pinOut(d);
         System.out.println(d.getOutput("Out").activated);
+
+        saveChipToFile(x);
+    }
+
+    public void saveChipToFile(Chip c) {
+        JSONObject json = new JSONObject();
+        json.put("name", c.name);
+
+        JSONArray inputs = new JSONArray();
+        JSONArray outputs = new JSONArray();
+
+        for(Pin p: c.iPins) {
+            inputs.add(p.name);
+        }
+
+        for(Pin p: c.oPins) {
+            outputs.add(p.name);
+        }
+
+        json.put("inputs", inputs);
+        json.put("outputs", outputs);
+
+        JSONArray chipList = new JSONArray();
+
+        for(Chip internal: c.chips) {
+            JSONObject chip = new JSONObject();
+
+            chip.put("name", internal.name);
+            chip.put("type", internal.getDMode().toString());
+
+            JSONArray cInputs = new JSONArray();
+            JSONArray cOutputs = new JSONArray();
+
+            for(Pin p: internal.iPins) {
+                cInputs.add(p.name);
+            }
+
+            for(Pin p: internal.oPins) {
+                cOutputs.add(p.name);
+            }
+
+            chip.put("inputs", cInputs);
+            chip.put("outputs", cOutputs);
+
+            chipList.add(chip);
+        }
+
+        json.put("internal_chips", chipList);
+
+        JSONArray connections = new JSONArray();
+
+        for (Pin pin : c.allPins) {
+            for (Pin connectedPin : pin.connectionsOut) {
+                JSONObject connection = new JSONObject();
+
+                // Format: "ChipName:PinName"
+                String from = pin.chip.name + ":" + pin.name;
+                String to = connectedPin.chip.name + ":" + connectedPin.name;
+
+                connection.put("from", from);
+                connection.put("to", to);
+
+                connections.add(connection);
+            }
+        }
+
+        for(Chip internal: c.chips) {
+            for (Pin pin : internal.allPins) {
+                for (Pin connectedPin : pin.connectionsOut) {
+                    JSONObject connection = new JSONObject();
+
+                    // Format: "ChipName:PinName"
+                    String from = pin.chip.name + ":" + pin.name;
+                    String to = connectedPin.chip.name + ":" + connectedPin.name;
+
+                    connection.put("from", from);
+                    connection.put("to", to);
+
+                    connections.add(connection);
+                }
+            }
+        }
+
+        json.put("connections", connections);
+
+        try {
+            FileWriter file = new FileWriter("./Chips/" + c.name + ".json");
+            file.write(json.toJSONString());
+            file.close();
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+    }
+
+    public Chip loadFromJson(String fileName) {
+        return null;
     }
 
     public void createChip(String name, Chip.Defaults mode)
