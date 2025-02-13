@@ -1,7 +1,13 @@
 import Logic.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.Reader;
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -76,6 +82,7 @@ class Editor
         System.out.println(d.getOutput("Out").activated);
 
         saveChipToFile(x);
+        Chip e = loadFromJson("XOR");
     }
 
     public void saveChipToFile(Chip c) {
@@ -169,7 +176,19 @@ class Editor
     }
 
     public Chip loadFromJson(String fileName) {
-        return null;
+        JSONParser parser = new JSONParser();
+        Reader reader;
+        JSONObject json = null;
+        try 
+        {
+            reader = new FileReader("./Chips/" + fileName + ".json");
+            json = (JSONObject) parser.parse(reader);
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        } 
+        createChip((String) json.get("name"), Chip.Defaults.NONE);
+
+        return getChip((Sring) json.get("name"));
     }
 
     public void createChip(String name, Chip.Defaults mode)

@@ -50,19 +50,22 @@ public class Chip
     {
 
         switch(dMode) {
-            case Defaults.AND:
-                oPins.getLast().activated = (iPins.getFirst().activated && iPins.getLast().activated);
+            case AND:
+                //oPins.getLast().activated = (iPins.getFirst().activated && iPins.getLast().activated);
+                oPins.get(0).activated = (iPins.get(0).activated && iPins.get(1).activated);
                 break;
 
-            case Defaults.NOT:
-                oPins.getLast().activated = !iPins.getFirst().activated;
+            case NOT:
+                //oPins.getLast().activated = !iPins.getFirst().activated;
+                oPins.get(0).activated = !iPins.get(0).activated;
                 break;
 
-            case Defaults.OR:
-                oPins.getLast().activated = (iPins.getFirst().activated || iPins.getLast().activated);
+            case OR:
+                //oPins.getLast().activated = (iPins.getFirst().activated || iPins.getLast().activated);
+                oPins.get(0).activated = (iPins.get(0).activated || iPins.get(1).activated);
                 break;
 
-            case Defaults.NONE:
+            case NONE:
                 break;
         }
         return this;
@@ -71,20 +74,21 @@ public class Chip
     public Chip setDefault(Defaults d) {
         dMode = d;
         switch(dMode) {
-            case Defaults.AND, Defaults.OR:
+            case AND:
+            case OR:
                 editable = false;
                 this.addInput("A");
                 this.addInput("B");
                 this.addOutput("C");
                 break;
 
-            case Defaults.NOT:
+            case NOT:
                 editable = false;
                 this.addInput("A");
                 this.addOutput("B");
                 break;
 
-            case Defaults.NONE:
+            case NONE:
                 break;
         }
         return this;
