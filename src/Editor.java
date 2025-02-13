@@ -10,8 +10,8 @@ class Editor
     {
         chipList = new LinkedList<>();
 
-        createChip("Test", Chip.Defaults.NONE);
-        Chip c = getChip("Test");
+        createChip("2AND", Chip.Defaults.NONE);
+        Chip c = getChip("2AND");
         c.addChip(new Chip("AND1", Chip.Defaults.AND)).addChip(new Chip("AND2",Chip.Defaults.AND)).addChip(new Chip("AND3",Chip.Defaults.AND));
         c.addOutput("Out");
         for(int i = 0; i < 4; i++) {
@@ -26,23 +26,23 @@ class Editor
         c.interconnect("AND2", "C", "AND3", "B");
         c.connectOut("AND3", "C", "Out");
 
-        createChip("Test2", Chip.Defaults.NONE);
-        Chip d = getChip("Test2");
-        d.addChip(c).addChip(new Chip("AND1B", Chip.Defaults.AND));
+        createChip("Test", Chip.Defaults.NONE);
+        Chip d = getChip("Test");
+        d.addChip(getChip("2AND")).addChip(new Chip("AND1", Chip.Defaults.AND));
         d.addOutput("Out");
         for(int i = 0; i < 5; i++) {
             d.addInput("In" + (i + 1));
             d.getInput("In" + (i + 1)).activated = true;
         }
-        d.connectIn("In1", "Test", "In1");
-        d.connectIn("In2", "Test", "In2");
-        d.connectIn("In3", "Test", "In3");
-        d.connectIn("In4", "Test", "In4");
-        d.connectIn("In5", "AND1B", "B");
-        d.interconnect("Test", "Out", "AND1B", "A");
-        d.connectOut("AND1B", "C", "Out");
+        d.connectIn("In1", "2AND", "In1");
+        d.connectIn("In2", "2AND", "In2");
+        d.connectIn("In3", "2AND", "In3");
+        d.connectIn("In4", "2AND", "In4");
+        d.connectIn("In5", "AND1", "B");
+        d.interconnect("2AND", "Out", "AND1", "A");
+        d.connectOut("AND1", "C", "Out");
         runSimulation(d);
-        pinOut(d);
+        pinOut(getChip("2AND"));
         System.out.println(d.getOutput("Out").activated);
     }
 
@@ -62,8 +62,40 @@ class Editor
         throw new RuntimeException("No Chip with name: " + name);
     }
 
-    public void runSimulation(Chip c) {
+    public void runSimulation(Chip c)
+    {
         if(c.getDMode() == Chip.Defaults.NONE) {
+            for(Pin p: c.iPins) {
+                for(Pin connected: p.connectionsOut) {
+                    connected.activated = p.activated;
+                }
+            }
+            for(Pin p: c.iPins) {
+                for(Pin connected: p.connectionsOut) {
+                    runSimulation(connected.chip);
+                }
+            }
+            for(Pin p: c.oPins) {
+                for(Pin connected: p.connectionsOut) {
+                    connected.activated = p.activated;
+                }
+            }
+        } else {
+            c.logic();
+            for(Pin p: c.oPins) {
+                for(Pin connected: p.connectionsOut) {
+                    connected.activated = p.activated;
+                }
+            }
+            for(Pin p: c.oPins) {
+                for(Pin connected: p.connectionsOut) {
+                    if(connected.mode != Pin.PINMODE.OUTPUT) {
+                        runSimulation(connected.chip);
+                    }
+                }
+            }
+        }
+        /*if(c.getDMode() == Chip.Defaults.NONE) {
             for(Pin in: c.iPins) {
                 for(Pin p: in.connectionsOut) {
                     p.activated = in.activated;
@@ -82,7 +114,7 @@ class Editor
             for(Pin p: out.connectionsOut) {
                 runSimulation(p.chip);
             }
-        }
+        }*/
     }
 
     public void pinOutOld(Chip c)
