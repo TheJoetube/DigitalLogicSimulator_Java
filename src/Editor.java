@@ -4,11 +4,32 @@ import java.util.LinkedList;
 class Editor
 {
     LinkedList<Chip> chipList;
-    public Chip ogChip;
 
     public Editor()
     {
         chipList = new LinkedList<>();
+
+        createChip("XOR", Chip.Defaults.NONE);
+        Chip x = getChip("XOR");
+        x.addChip(new Chip("AND1", Chip.Defaults.AND)).addChip(new Chip("AND2", Chip.Defaults.AND)).addChip(new Chip("OR", Chip.Defaults.OR)).addChip(new Chip("NOT", Chip.Defaults.NOT));
+        x.addInput("A");
+        x.addInput("B");
+        x.getInput("A").activated = true;
+        //x.getInput("B").activated = true;
+        x.addOutput("C");
+
+        x.connectIn("A", "OR", "A");
+        x.connectIn("B", "OR", "B");
+        x.connectIn("A", "AND1", "A");
+        x.connectIn("B", "AND1", "B");
+        x.interconnect("AND1", "C", "NOT", "A");
+        x.interconnect("OR", "C", "AND2", "A");
+        x.interconnect("NOT", "B", "AND2", "B");
+        x.connectOut("AND2", "C", "C");
+
+        runSimulation(x);
+        pinOut(x);
+        System.out.println(x.getOutput("C").activated);
 
         createChip("2AND", Chip.Defaults.NONE);
         Chip c = getChip("2AND");
@@ -26,6 +47,10 @@ class Editor
         c.interconnect("AND2", "C", "AND3", "B");
         c.connectOut("AND3", "C", "Out");
 
+        runSimulation(c);
+        pinOut(c);
+        System.out.println(c.getOutput("Out").activated);
+
         createChip("Test", Chip.Defaults.NONE);
         Chip d = getChip("Test");
         d.addChip(getChip("2AND")).addChip(new Chip("AND1", Chip.Defaults.AND));
@@ -41,8 +66,9 @@ class Editor
         d.connectIn("In5", "AND1", "B");
         d.interconnect("2AND", "Out", "AND1", "A");
         d.connectOut("AND1", "C", "Out");
+
         runSimulation(d);
-        pinOut(getChip("2AND"));
+        pinOut(d);
         System.out.println(d.getOutput("Out").activated);
     }
 
@@ -95,26 +121,6 @@ class Editor
                 }
             }
         }
-        /*if(c.getDMode() == Chip.Defaults.NONE) {
-            for(Pin in: c.iPins) {
-                for(Pin p: in.connectionsOut) {
-                    p.activated = in.activated;
-                }
-                for(Pin p: in.connectionsOut) {
-                    runSimulation(p.chip);
-                }
-            }
-        } else {
-            c.logic();
-        }
-        for(Pin out: c.oPins) {
-            for(Pin p: out.connectionsOut) {
-                p.activated = out.activated;
-            }
-            for(Pin p: out.connectionsOut) {
-                runSimulation(p.chip);
-            }
-        }*/
     }
 
     public void pinOutOld(Chip c)
