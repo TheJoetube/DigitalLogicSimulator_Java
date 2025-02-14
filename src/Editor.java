@@ -179,6 +179,7 @@ class Editor
         JSONParser parser = new JSONParser();
         Reader reader;
         JSONObject json = null;
+        String name;
         try 
         {
             reader = new FileReader("./Chips/" + fileName + ".json");
@@ -186,9 +187,20 @@ class Editor
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         } 
-        createChip((String) json.get("name"), Chip.Defaults.NONE);
+        name = (String) json.get("name");
+        createChip(name, Chip.Defaults.NONE);
 
-        return getChip((Sring) json.get("name"));
+        JSONArray inputs = (JSONArray) json.get("inputs");
+        JSONArray outputs = (JSONArray) json.get("outputs");
+
+        for(Object s: inputs.toArray()) {
+            getChip(name).addInput(s.toString());
+        }
+        for(Object s: outputs.toArray()) {
+            getChip(name).addOutput(s.toString());
+        }
+
+        return getChip((String) json.get("name"));
     }
 
     public void createChip(String name, Chip.Defaults mode)
