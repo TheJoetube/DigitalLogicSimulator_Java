@@ -19,7 +19,7 @@ class Editor
     {
         chipList = new LinkedList<>();
 
-        createChip("XOR", Chip.Defaults.NONE);
+        /*createChip("XOR", Chip.Defaults.NONE);
         Chip x = getChip("XOR");
         x.addChip(new Chip("AND1", Chip.Defaults.AND)).addChip(new Chip("AND2", Chip.Defaults.AND)).addChip(new Chip("OR", Chip.Defaults.OR)).addChip(new Chip("NOT", Chip.Defaults.NOT));
         x.addInput("A");
@@ -59,7 +59,9 @@ class Editor
 
         runSimulation(c);
         pinOut(c);
-        System.out.println(c.getOutput("Out").activated);
+        System.out.println(c.getOutput("Out").activated); */
+
+        /*loadFromJson("2AND");
 
         createChip("Test", Chip.Defaults.NONE);
         Chip d = getChip("Test");
@@ -81,8 +83,14 @@ class Editor
         pinOut(d);
         System.out.println(d.getOutput("Out").activated);
 
-        saveChipToFile(x);
-        Chip e = loadFromJson("XOR");
+        saveChipToFile(d); */
+        Chip e = loadFromJson("Test");
+        for(int i = 0; i < 5; i++) {
+            e.getInput("In" + (i + 1)).activated = true;
+        }
+        runSimulation(e);
+        pinOut(e);
+        System.out.println(e.getOutput("Out").activated);
     }
 
     public void saveChipToFile(Chip c) {
@@ -132,13 +140,21 @@ class Editor
 
         JSONArray connections = new JSONArray();
 
-        for (Pin pin : c.allPins) {
+        for (Pin pin : c.iPins) {
             for (Pin connectedPin : pin.connectionsOut) {
                 JSONObject connection = new JSONObject();
 
                 // Format: "ChipName:PinName"
-                String from = pin.chip.name + ":" + pin.name;
-                String to = connectedPin.chip.name + ":" + connectedPin.name;
+                String from;
+                String to;
+
+                if(pin.mode == Pin.PINMODE.INPUT) {
+                    from = pin.chip.name + ":" + pin.name;
+                    to = connectedPin.chip.name + ":" + connectedPin.name;
+                } else {
+                    from = connectedPin.chip.name + ":" + connectedPin.name;
+                    to = pin.chip.name + ":" + pin.name;
+                }
 
                 connection.put("from", from);
                 connection.put("to", to);
@@ -148,13 +164,21 @@ class Editor
         }
 
         for(Chip internal: c.chips) {
-            for (Pin pin : internal.allPins) {
+            for (Pin pin : internal.oPins) {
                 for (Pin connectedPin : pin.connectionsOut) {
                     JSONObject connection = new JSONObject();
 
                     // Format: "ChipName:PinName"
-                    String from = pin.chip.name + ":" + pin.name;
-                    String to = connectedPin.chip.name + ":" + connectedPin.name;
+                    String from;
+                    String to;
+
+                    if(pin.mode == Pin.PINMODE.OUTPUT) {
+                        from = pin.chip.name + ":" + pin.name;
+                        to = connectedPin.chip.name + ":" + connectedPin.name;
+                    } else {
+                        from = connectedPin.chip.name + ":" + connectedPin.name;
+                        to = pin.chip.name + ":" + pin.name;
+                    }
 
                     connection.put("from", from);
                     connection.put("to", to);
@@ -177,7 +201,7 @@ class Editor
 
     public Chip loadFromJson(String fileName) {
         JSONParser parser = new JSONParser();
-        Reader reader;
+        Reader reader = null;
         JSONObject json = null;
         String name;
         try 
@@ -200,7 +224,82 @@ class Editor
             getChip(name).addOutput(s.toString());
         }
 
-        return getChip((String) json.get("name"));
+        JSONArray chipsArr = (JSONArray) json.get("internal_chips");
+        JSONObject[] chips = new JSONObject[chipsArr.size()];
+
+        for(int i = 0; i < chips.length; i++) {
+            chips[i] = (JSONObject) chipsArr.get(i);
+        }
+
+        for(JSONObject chip: chips) {
+            if(!chip.get("type").equals("AND") && !chip.get("type").equals("OR") && !chip.get("type").equals("NOT")) {
+                if(!isLoaded((String) chip.get("name"))) {
+                    loadFromJson((String) chip.get("name"));
+                }
+                getChip(name).addChip(getChip((String) chip.get("name")));
+            } else {
+                Chip.Defaults defaultMode;
+                switch((String) chip.get("type")) {
+                    case "AND":
+                        defaultMode = Chip.Defaults.AND;
+                        break;
+
+                    case "OR":
+                        defaultMode = Chip.Defaults.OR;
+                        break;
+
+                    case "NOT":
+                        defaultMode = Chip.Defaults.NOT;
+                        break;
+
+                    default:
+                        defaultMode = Chip.Defaults.NONE;
+                        break;
+                }
+                getChip(name).addChip(new Chip((String) chip.get("name"), defaultMode));
+            }
+        }
+
+        JSONArray connectionsArr = (JSONArray) json.get("connections");
+        JSONObject[] connections = new JSONObject[connectionsArr.size()];
+
+        for(int i = 0; i < connections.length; i++) {
+            connections[i] = (JSONObject) connectionsArr.get(i);
+        }
+
+        for(JSONObject connection: connections) {
+            String from = (String) connection.get("from");
+            String to = (String) connection.get("to");
+
+            String[] fromParts = from.split(":");
+            String[] toParts = to.split(":");
+
+            if(fromParts[0].equals(name)) {
+                getChip(name).connectIn(fromParts[1], toParts[0], toParts[1]);
+            } else if(toParts[0].equals(name)) {
+                getChip(name).connectOut(fromParts[0], fromParts[1], toParts[1]);
+            } else {
+                getChip(name).interconnect(fromParts[0], fromParts[1], toParts[0], toParts[1]);
+            }
+        }
+
+        try {
+            assert reader != null;
+            reader.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return getChip(name);
+    }
+
+    public boolean isLoaded(String name) {
+        for(Chip p: chipList) {
+            if(p.name.equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void createChip(String name, Chip.Defaults mode)
