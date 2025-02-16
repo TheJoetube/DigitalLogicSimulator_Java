@@ -19,78 +19,15 @@ class Editor
     {
         chipList = new LinkedList<>();
 
-        /*createChip("XOR", Chip.Defaults.NONE);
-        Chip x = getChip("XOR");
-        x.addChip(new Chip("AND1", Chip.Defaults.AND)).addChip(new Chip("AND2", Chip.Defaults.AND)).addChip(new Chip("OR", Chip.Defaults.OR)).addChip(new Chip("NOT", Chip.Defaults.NOT));
-        x.addInput("A");
-        x.addInput("B");
-        x.getInput("A").activated = true;
-        //x.getInput("B").activated = true;
-        x.addOutput("C");
-
-        x.connectIn("A", "OR", "A");
-        x.connectIn("B", "OR", "B");
-        x.connectIn("A", "AND1", "A");
-        x.connectIn("B", "AND1", "B");
-        x.interconnect("AND1", "C", "NOT", "A");
-        x.interconnect("OR", "C", "AND2", "A");
-        x.interconnect("NOT", "B", "AND2", "B");
-        x.connectOut("AND2", "C", "C");
-
-        runSimulation(x);
-        pinOut(x);
-        System.out.println(x.getOutput("C").activated);
-
-        createChip("2AND", Chip.Defaults.NONE);
-        Chip c = getChip("2AND");
-        c.addChip(new Chip("AND1", Chip.Defaults.AND)).addChip(new Chip("AND2",Chip.Defaults.AND)).addChip(new Chip("AND3",Chip.Defaults.AND));
-        c.addOutput("Out");
-        for(int i = 0; i < 4; i++) {
-            c.addInput("In" + (i + 1));
-            //c.getInput("In" + (i + 1)).activated = true;
-        }
-        c.connectIn("In1", "AND1", "A");
-        c.connectIn("In2", "AND1", "B");
-        c.connectIn("In3", "AND2", "A");
-        c.connectIn("In4", "AND2", "B");
-        c.interconnect("AND1", "C", "AND3", "A");
-        c.interconnect("AND2", "C", "AND3", "B");
-        c.connectOut("AND3", "C", "Out");
-
-        runSimulation(c);
-        pinOut(c);
-        System.out.println(c.getOutput("Out").activated); */
-
-        /*loadFromJson("2AND");
-
-        createChip("Test", Chip.Defaults.NONE);
-        Chip d = getChip("Test");
-        d.addChip(getChip("2AND")).addChip(new Chip("AND1", Chip.Defaults.AND));
-        d.addOutput("Out");
-        for(int i = 0; i < 5; i++) {
-            d.addInput("In" + (i + 1));
-            d.getInput("In" + (i + 1)).activated = true;
-        }
-        d.connectIn("In1", "2AND", "In1");
-        d.connectIn("In2", "2AND", "In2");
-        d.connectIn("In3", "2AND", "In3");
-        d.connectIn("In4", "2AND", "In4");
-        d.connectIn("In5", "AND1", "B");
-        d.interconnect("2AND", "Out", "AND1", "A");
-        d.connectOut("AND1", "C", "Out");
-
-        runSimulation(d);
-        pinOut(d);
-        System.out.println(d.getOutput("Out").activated);
-
-        saveChipToFile(d); */
+        //saveChipToFile(d);
         Chip e = loadFromJson("Test");
         for(int i = 0; i < 5; i++) {
             e.getInput("In" + (i + 1)).activated = true;
         }
-        runSimulation(e);
+        //runSimulation(e);
         pinOut(e);
-        System.out.println(e.getOutput("Out").activated);
+        //System.out.println(e.getOutput("Out").activated);
+        printTruthTable(e);
     }
 
     public void saveChipToFile(Chip c) {
@@ -372,6 +309,27 @@ class Editor
         System.out.println("\nOUT:");
         for(Pin p: c.oPins) {
             System.out.println(p.name);
+        }
+    }
+
+    public void printTruthTable(Chip c) {
+        int totalCombinations = 1 << c.iPins.size(); // 2^n combinations
+        boolean[][] truthTable = new boolean[totalCombinations][c.iPins.size() + c.oPins.size()];
+
+        for (int i = 0; i < totalCombinations; i++) {
+            for (int j = 0; j < c.iPins.size(); j++) {
+                truthTable[i][j] = (i & (1 << j)) != 0; // Extract bit as boolean
+            }
+        }
+
+        for(int i = 0; i < truthTable.length; i++) {
+            for(int j = 0; j < c.iPins.size(); j++) {
+                c.iPins.get(j).activated = truthTable[i][j];
+            }
+            runSimulation(c);
+            for(int j = 0; j < c.oPins.size(); j++) {
+                truthTable[i][c.iPins.size() + j] = c.oPins.get(j).activated;
+            }
         }
     }
 
