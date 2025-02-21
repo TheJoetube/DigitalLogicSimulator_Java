@@ -9,7 +9,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.Reader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+
+import com.bethecoder.ascii_table.ASCIITable;
+import com.bethecoder.ascii_table.ASCIITableHeader;
 
 class Editor
 {
@@ -97,6 +101,7 @@ class Editor
                 connection.put("to", to);
 
                 connections.add(connection);
+
             }
         }
 
@@ -331,6 +336,26 @@ class Editor
                 truthTable[i][c.iPins.size() + j] = c.oPins.get(j).activated;
             }
         }
+
+        String[][] truthTableString = new String[totalCombinations][c.iPins.size() + c.oPins.size()];
+
+        for(int i = 0; i < truthTable.length;i++) {
+            for(int j = 0; j < truthTable[i].length; j++) {
+                truthTableString[i][j] = Boolean.toString(truthTable[i][j]);
+            }
+        }
+
+        ASCIITableHeader[] header = new ASCIITableHeader[c.iPins.size() + c.oPins.size()];
+
+        ArrayList<Pin> both = new ArrayList<>();
+        both.addAll(c.iPins);
+        both.addAll(c.oPins);
+
+        for(int i = 0; i < both.size(); i++) {
+            header[i] = new ASCIITableHeader(both.get(i).name, ASCIITable.ALIGN_LEFT);
+        }
+
+        ASCIITable.getInstance().printTable(header, truthTableString);
     }
 
     public void pinOut(Chip c) {
